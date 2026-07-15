@@ -1,2 +1,2 @@
-# FACTOR-
-The repository contains the core code to reproduce the paper "FACTOR: Fairness-Aligned Conformal Transport for Optimal Regions"
+# FACTOR
+The repository contains the core code to reproduce the paper "FACTOR: Fairness-Aligned Conformal Transport for Optimal Regions". FACTOR is optimal transport-based conformal inference for multivariate outcomes with fairness contraints. The outcomes can be continuous, discrete or mixed and the training of optimal transport is mostly adapted from [multi-output-conformal-regression](https://github.com/Vekteur/multi-output-conformal-regression). 
