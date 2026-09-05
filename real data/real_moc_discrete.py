@@ -212,38 +212,6 @@ methods = ['MCP', 'HDR', 'L-CP',
             # 'DR-CP',
             'HD-CP',
             'FACTOR']
-
-# organize the results
-rst_plot1 = rst_all.query(f'method in {methods}')
-palette = sns.color_palette('Paired')
-# visual plot for all results
-fig, ax_bottom = plt.subplots(1, 3, figsize=(12, 3))
-rst_plot1['log_volume'] = np.log(rst_plot1['AvgVol'])
-rst_plot1['log_AvgTime'] = np.log(rst_plot1['AvgTime'])
-sns.barplot(x='data_name', y='log_volume', data=rst_plot1, 
-            hue = 'method', ax=ax_bottom[0], palette=palette)
-ax_bottom[0].set_ylabel("log(Average region size)")
-ax_bottom[0].set_xlabel(" ")
-sns.barplot(x='data_name', y='KS', data=rst_plot1, 
-            hue = 'method', ax=ax_bottom[1], palette=palette)
-ax_bottom[1].set_ylabel("Empirical KS distance")
-ax_bottom[1].set_xlabel(" ")
-sns.barplot(x='data_name', y='AvgTime', data=rst_plot1, 
-            hue = 'method', ax=ax_bottom[2], palette=palette)
-ax_bottom[2].set_ylabel("Elapsed time")
-ax_bottom[2].set_xlabel(" ")
-# Only add the legend to the first axis, and position it outside
-handles, labels = ax_bottom[0].get_legend_handles_labels()
-fig.legend(handles, labels, loc='upper center', 
-           bbox_to_anchor=(0.5, 1.13), ncol=len(labels), fontsize=12, frameon=False)
-# Remove legends from other axes to avoid duplicates
-for ax in ax_bottom:
-    ax.get_legend().remove()
-    plt.setp(ax.get_xticklabels(), rotation=30, ha='center')
-plt.tight_layout()  # adjust right space for legend
-savefig('real_data.pdf')
-
-
 # example plot: mixed-type plot in Figure 1
 data_name ='house'
 res_df = pd.read_csv(f'{data_name}_rst.csv')
@@ -332,7 +300,7 @@ ax_bottom[2].bar(x='method', height='AvgTime', data=res_df,
 ax_bottom[2].set_ylabel("Elapsed time")
 # fig.suptitle(data_name, fontsize=16)
 # save the figure in pdf
-savefig(f'{data_name}_2d_byGroup_demo.pdf')
+savefig(f'Figure1_{data_name}_2d_byGroup_demo.pdf')
 
 
 
