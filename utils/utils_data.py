@@ -17,7 +17,7 @@ from omegaconf import DictConfig
 from torch.distributions import TransformedDistribution, Normal, \
     Independent, Uniform, Categorical, MixtureSameFamily, MultivariateNormal
 from pathlib import Path
-from preprocessing import preprocess
+from utils.preprocessing import preprocess
 # Source: https://gist.github.com/farahmand-m/8a416f33a27d73a149f92ce4708beb40
 class StandardScaler:
     def __init__(self, mean=None, scale=None, epsilon=1e-7):

@@ -12,20 +12,19 @@ import pandas as pd
 # model module
 from mqf2.lightning_module import MQF2LightningModule
 # trainer scheme
-from utils_moc import (
+from utils.utils_moc import (
 get_lightning_trainer,
 plot_contour_at_coverage_2D_discrete_groupk,
 compute_coverage_indicator,
 compute_region_size,
 savefig
 )
-from utils_data import (
+from utils.utils_data import (
     RealDataModule)
-from utils_conformalizer import (
+from utils.utils_conformalizer import (
     M_CP, L_CP,
     CL_CP_DP,
-    C_HDR, 
-    DR_CP, PCP, HD_PCP,
+    C_HDR, PCP, HD_PCP,
     CL_CP, L_CP_DP,
     STDQR)
         
@@ -35,9 +34,6 @@ from timeit import default_timer as timer
 import matplotlib.gridspec as gridspec
 
 # the name of dataset in the folder data
-data_name = 'births1' # 'house', 'wage'
-data_name ='house'
-data_name = 'air'
 for data_name in [# continuous 
                   'births1', 'energy', 'air', 'households', 
                   # discrete 
@@ -247,116 +243,11 @@ for ax in ax_bottom:
 plt.tight_layout()  # adjust right space for legend
 savefig('real_data.pdf')
 
-# Compute mean and std over datasets
-rst_plot1.groupby('method').agg(
-    mean_log_vol=('log_volume', 'mean'),
-    mean_KS=('KS', 'mean'),
-    mean_time=('AvgTime', 'mean'),
-).reset_index()
 
-# plot the p-rule for the real-data and simulated data
-fig, axes = plt.subplots(1, 2, figsize=(8, 3))
-import pickle
-n = 5000
-def load_sim_res(data_set):
-    # Load the dictionary
-    with open(f'{data_set}_n{n}_res.pkl', 'rb') as f:
-        res = pickle.load(f)
-    return pd.DataFrame([{'method': r['method'], 
-                          'data_set': data_set,
-               'CovStd': np.std(r), 
-               'KS': np.max(r['coverage']) - np.min(r['coverage']), 
-                'AvgVol': (np.mean(r['volume'])).item()} for r in res])
-# readin and plot
-sim_data = pd.concat([pd.read_csv(f'{data_name}_n{n}_rst.csv') for
-           data_name in [
-               # continuous
-               'mvnormal_2_0', 'mvnormal_2_0.5', 'mvnormal_2_0.8'
-               ]])
-sim_data['data_set'] = sim_data['data_set'].map({'mvnormal_2_0': 'rho = 0',
-                        'mvnormal_2_0.5': 'rho = 0.5',
-                        'mvnormal_2_0.8': 'rho = 0.8'})
-sim_data = sim_data.query(f'method in {methods}')
-real_data = rst_plot1
-sns.barplot(x='data_set', y='p-rule', data=sim_data, 
-            hue = 'method', ax=axes[0], palette=palette)
-axes[0].set_ylabel("P-rule for simulated data")
-axes[0].set_xlabel(" ")
-axes[0].axhline(y=1, color='red', linestyle='--')
-sns.barplot(x='data_name', y='p-rule', data=real_data, 
-            hue = 'method', ax=axes[1], palette=palette)
-axes[1].set_ylabel("P-rule for real-world data")
-axes[1].set_xlabel(" ")
-axes[1].axhline(y=1, color='red', linestyle='--')
-# Only add the legend to the first axis, and position it outside
-handles, labels = axes[0].get_legend_handles_labels()
-fig.legend(handles, labels, loc='upper center', 
-           bbox_to_anchor=(0.5, 1.13), ncol=len(labels), fontsize=12, frameon=False)
-# Remove legends from other axes to avoid duplicates
-for ax in axes:
-    ax.get_legend().remove()
-    plt.setp(ax.get_xticklabels(), rotation=30, ha='center')
-plt.tight_layout()  # adjust right space for legend
-savefig('p_rule_fairness.pdf')
-
-# ablation study
-methods = ['L-CP',
-'FACTOR (w/o OptimCutoff)',
-'FACTOR (w/o Fairness)',
-'FACTOR']
-
-# organize the results
-rst_plot2 = rst_all.query(f'method in {methods}')
-# Rename L‑CP inside the dataframe
-rst_plot2['method'] = rst_plot2['method'].replace(
-    {'L-CP': 'FACTOR (w/o OptimCutoff & Fairness)'}
-)
-palette = sns.color_palette('Paired')
-# visual plot for all results
-fig, ax_bottom = plt.subplots(1, 2, figsize=(8, 3))
-rst_plot2['log_volume'] = np.log(rst_plot2['AvgVol'])
-rst_plot2['log_AvgTime'] = np.log(rst_plot2['AvgTime'])
-sns.barplot(x='data_name', y='log_volume', data=rst_plot2, 
-            hue = 'method', ax=ax_bottom[0], palette=palette)
-ax_bottom[0].set_ylabel("log(Average region size)")
-ax_bottom[0].set_xlabel(" ")
-sns.barplot(x='data_name', y='KS', data=rst_plot2, 
-            hue = 'method', ax=ax_bottom[1], palette=palette)
-ax_bottom[1].set_ylabel("Empirical KS distance")
-ax_bottom[1].set_xlabel(" ")
-# Only add the legend to the first axis, and position it outside
-handles, labels = ax_bottom[0].get_legend_handles_labels()
-fig.legend(handles, labels, loc='upper center', 
-           bbox_to_anchor=(0.5, 1.2), ncol=2, fontsize=12, frameon=False)
-# Remove legends from other axes to avoid duplicates
-for ax in ax_bottom:
-    ax.get_legend().remove()
-    plt.setp(ax.get_xticklabels(), rotation=30, ha='center')
-plt.tight_layout()  # adjust right space for legend
-savefig('ablation_study.pdf')
-
-
-# Compute mean and std over datasets
-rst_plot2.groupby('method').agg(
-    mean_log_vol=('log_volume', 'mean'),
-    std_log_vol=('log_volume', 'std'),
-    mean_KS=('KS', 'mean'),
-    std_KS=('KS', 'std')
-).reset_index()
-
-
-
-# example plot
+# example plot: mixed-type plot in Figure 1
+data_name ='house'
 res_df = pd.read_csv(f'{data_name}_rst.csv')
 res_df = res_df.query("method in  ['MCP', 'HDR', 'L-CP',  'ST-DQR', 'PCP',  'HD-CP', 'FACTOR']")
-# res_df['method'] = res_df['method'].map({'CL-HDR-DP': 'FACTOR',
-#                        'MCP': 'MCP',
-#                        'HDR': 'HDR',
-#                        'L-HDR': 'L-CP',
-#                        'CL-HDR': 'CL-HDR'})
-
-
-# methods = ['MCP', 'HDR', 'L-CP', 'FACTOR']
 # create the parent figure
 fig = plt.figure(figsize=(15, 6))
 gs = fig.add_gridspec(2, 1, height_ratios=[3, 2], hspace=0.3)
@@ -445,27 +336,3 @@ savefig(f'{data_name}_2d_byGroup_demo.pdf')
 
 
 
-
-# Paste your data into a dictionary (or load via CSV if you prefer)
-res_df = pd.read_csv(f'air_rst.csv')
-
-res_df = res_df.query(f'method in {methods}')
-# Compute log(AvgVol) for plotting as 'log_volume'
-res_df['log_volume'] = np.log(res_df['AvgVol'])
-
-# Create figure and axes
-fig, ax_bottom = plt.subplots(1, 3, figsize=(16, 3), constrained_layout=True)
-
-# Bar plot 1: log_volume
-ax_bottom[0].bar(res_df['method'], res_df['log_volume'], color=palette)
-ax_bottom[0].set_ylabel("log(Average region size)")
-
-# Bar plot 2: KS
-ax_bottom[1].bar(res_df['method'], res_df['KS'], color=palette)
-ax_bottom[1].set_ylabel("Empirical KS distance")
-
-# Bar plot 3: AvgTime
-ax_bottom[2].bar(res_df['method'], res_df['AvgTime'], color=palette)
-ax_bottom[2].set_ylabel("Elapsed time")
-# plt.show()
-savefig('real_data_example_p=6.pdf')
